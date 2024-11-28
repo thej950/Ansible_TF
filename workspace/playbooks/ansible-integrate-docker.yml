@@ -1,0 +1,25 @@
+# ansible communicate with docker ansible require software called as docker-py
+# docker-py it is a python related software
+# to install docker-py software we need install pip
+# pip is package management for python  related softwares it will install python related softwares
+# now using pip i can install docker-py software on ansible
+# then docker-py available on ansible now ansible capable to communicate with docker
+#
+# Docker and pip installation on worker nodes
+---
+- name: intstall docker and required software to integrate with ansible
+  hosts: all
+  tasks:
+    - name: Install python pip
+      apt:
+        name: python3-pip
+        state: present
+        update_cache: yes
+    - name: download docker script and execute it and also install docker-py
+      shell: "{{item}}"
+      with_items:
+          - curl -fsSL https://get.docker.com -o get-docker.sh
+          - sh get-docker.sh
+          - pip3 install docker-py
+...
+
