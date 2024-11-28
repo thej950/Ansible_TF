@@ -198,3 +198,11 @@
             "ping": "pong"
         }
         ubuntu@ip-10-0-1-10:~/workspace$
+
+# To run playbooks from controller Goto playbooks directory 
+and excute below command 
+
+        $ ansible-playbook ansible-integrate-docker.yml -i ../hosts --check
+
+        $ ansible-playbook playbook1.yml -i ../hosts --check
+
