@@ -199,10 +199,15 @@
         }
         ubuntu@ip-10-0-1-10:~/workspace$
 
+
+# Clone below repo for yml files in **workspace** folder 
+
+        git clone https://github.com/thej950/playbooks01.git 
+
 # To run playbooks from controller Goto playbooks directory 
 and excute below command 
 
-        $ ansible-playbook ansible-integrate-docker.yml -i ../hosts --check
-
+        ansible-playbook ansible-integrate-docker.yml -i ../hosts --check
+-
         $ ansible-playbook playbook1.yml -i ../hosts --check
 
