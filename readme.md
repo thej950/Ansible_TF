@@ -10,6 +10,15 @@
         default  : text 
 
 
+# terraform commands 
+
+        terraform init 
+
+        terraform plan 
+
+        terraform apply 
+
+        terraform destroy 
 
 # Now create a terraform file to setup ansible environemnt on aws cloud 
 - create providers in providers block and specifying region to work 
@@ -164,7 +173,11 @@
 
 # To check ansible cluster working properly 
 
+        
+
 - Connect to controller using public ip 
+
+        cd workspace/sshkeys
 
         # ssh -i terraform ubuntu@23.89.44.45
 
@@ -200,14 +213,15 @@
         ubuntu@ip-10-0-1-10:~/workspace$
 
 
+# If playbooks01 repo is not available in /home/ubuntu clone using below command 
 # Clone below repo for yml files in **workspace** folder 
 
         git clone https://github.com/thej950/playbooks01.git 
 
-# To run playbooks from controller Goto playbooks directory 
+# To run playbooks from controller Goto playbooks01 directory 
 and excute below command 
 
-        ansible-playbook ansible-integrate-docker.yml -i ../hosts --check
-        
+        ansible-playbook <playbook.yml> -i <inventory> --check
+
         $ ansible-playbook playbook1.yml -i ../hosts --check
 
