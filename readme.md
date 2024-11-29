@@ -1,227 +1,86 @@
-# Setup Ansible cluster 
-- create a user with AdministrationAccess (user-admin) on aws cloud 
-- Generate accesskeys and secret accesskeys for to login from CLI 
-- login into local machie where terraform will be implemented 
 
-        # aws configure 
-        accesskey: XXXXXXXXX
-        secretkey: XXXXXXXXXXX
-        region   : us-east-1
-        default  : text 
-
-
-# terraform commands 
-
-        terraform init 
-
-        terraform plan 
-
-        terraform apply 
-
-        terraform destroy 
-
-# Now create a terraform file to setup ansible environemnt on aws cloud 
-- create providers in providers block and specifying region to work 
-
-        provider "aws" {
-            region = "us-east-1"
-        }
-
-- create resource of aws_vpc with myvpc with specific range (10.0.0.0/16)
-
-        resource "aws_vpc" "myvpc" {
-            cidr_block = var.cidr
-        }
-
-- create resource aws_subnet with subnet-1 10.0.1.0/24 under myvpc range 
-
-        resource "aws_subnet" "subnet-1" {
-            vpc_id                  = aws_vpc.myvpc.id
-            cidr_block              = "10.0.1.0/24"
-            map_public_ip_on_launch = true
-        }
-
-- create a resource of aws_internet_gateway with igw under myvpc To provide internet access 
-
-        resource "aws_internet_gateway" "igw" {
-            vpc_id = aws_vpc.myvpc.id
-        }
-
-- create resource of aws_route_table as a  RT-1 under myvpc and edit route to igw 
-
-         resource "aws_route_table" "RT-1" {
-            vpc_id = aws_vpc.myvpc.id
-
-            route {
-                cidr_block = "0.0.0.0/0"
-                gateway_id = aws_internet_gateway.igw.id
-            }
-        }
-
-- create a resource of aws_route_table_association as rta-1 with associate with subnet-1   route association with attched to subent-1 (10.0.1.0/24)
-
-        resource "aws_route_table_association" "rta-1" {
-            subnet_id      = aws_subnet.subnet-1.id
-            route_table_id = aws_route_table.RT-1.id
-        }
-
-
-- create a resource aws_security_group as a sg-1  under myvpc allow  ssh to connect machine remotely 
-    
-
-        resource "aws_security_group" "sg-1" {
-            vpc_id      = aws_vpc.myvpc.id
-            name        = "websg"
-            description = "Allow TLS Inbound Traffic"
-
-            ingress {
-                description = "SSH"
-                from_port   = 22
-                to_port     = 22
-                protocol    = "tcp"
-                cidr_blocks = ["0.0.0.0/0"]
-            }
-
-            egress {
-                from_port   = 0
-                to_port     = 0
-                protocol    = "-1"
-                cidr_blocks = ["0.0.0.0/0"]
-            }
-
-            tags = {
-                Name = "websg-1"
-            }
-        }
-
->> From above code security group ingress is for inbound rules and egress for outbound rules 
-
-- create a resource aws_key_pair with awskey1 ( this is for usefull to connect our machines )
-
-
-        resource "aws_key_pair" "awskey1" {
-            key_name   = "terraform"
-            public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCoiZLoj3+KnBzp1Ot+MTB7mgT2KX/u5ssM8TeBDxx3UxcTdRErS0AuRuNPgvdiVYfZ3R34KDIxbERT27NxEALfNYbLhU+FQ3IpduPe8imCKLHYgYzxwOQWuMEkfV9wevRxW7dcto/12MTmGKg8anE93l4uC/wet6htkLPeRymf/Dk0kCyGz1CVtdLqei78lUdAPgluPH28iK9wtLKVw9cm344DmDPi0wPVMFGzPs7Lq3j1XpqpG7ZO7ECiluqbw6wRPY9KLA5Eux7ng4qSLhi02PMDwuhQbTC97Onu89CbGhmQreZLx7hXcbkCax3+vduae7lDV/QsqEeOn6ndKNPH8BhSUpRF+SLpWGVpps6S+nlUvw9uoBML3sWOM25lDGBaYsttkIiXL2W0GLtwjRZWyolBOVjkmOvgjekBqCrYxPlQPiJh0R9Kns+3MAAk0lD3faNLuWwE3IRaFePghQvFY3nKOAW+LsbNCq5xtesbNzXwSLlo4cdU4FjKob3uots= DELL@Navathej"
-        }
-
-- create resource aws_instance with name controller 10.0.1.10 with ansible setup in userdata and using file provision to copy local workspace folder into remote ansible Controller
-
-        resource "aws_instance" "controller" {
-            ami                    = "ami-0fc5d935ebf8bc3bc"
-            instance_type          = "t2.micro"
-            key_name               = "terraform"
-            subnet_id              = aws_subnet.subnet-1.id
-            vpc_security_group_ids = [aws_security_group.sg-1.id]
-            private_ip             = "10.0.1.10"
-
-            user_data = base64encode(file("workspace/controller.sh"))
-
-
-            provisioner "file" {
-                source      = "workspace"
-                destination = "/home/ubuntu/workspace"
-
-                connection {
-                type        = "ssh"
-                user        = "ubuntu"
-                private_key = file("workspace/sshkeys/terraform")
-                host        = aws_instance.controller.public_ip
-                }
-            }
-            tags = {
-                Name = "Controller-Machine"
-            }
-        }
-
->> above instance created inder subnet-1 
-
-- create a resource aws_instance with worker-1 (10.0.1.11) and worker-2 (10.0.1.12)
-
-- worker-1
-
-        resource "aws_instance" "worker-1" {
-            ami                    = "ami-0fc5d935ebf8bc3bc"
-            instance_type          = "t2.micro"
-            key_name               = "terraform"
-            subnet_id              = aws_subnet.subnet-1.id
-            vpc_security_group_ids = [aws_security_group.sg-1.id]
-            private_ip             = "10.0.1.11"
-
-            tags = {
-                Name = "worker-mchine-1"
-            }
-        }
-
-
-- worker-2 
-
-        resource "aws_instance" "worker-2" {
-            ami                    = "ami-0fc5d935ebf8bc3bc"
-            instance_type          = "t2.micro"
-            key_name               = "terraform"
-            subnet_id              = aws_subnet.subnet-1.id
-            vpc_security_group_ids = [aws_security_group.sg-1.id]
-            private_ip             = "10.0.1.12"
-            
-            tags = {
-            Name = "worker-machine-2"
-            }
-        }
-
->> from above Two machines are managed nodes 
-
-
-# To check ansible cluster working properly 
-
-        
-
-- Connect to controller using public ip 
-
-        cd workspace/sshkeys
-
-        # ssh -i terraform ubuntu@23.89.44.45
-
-- Now check ansible version 
-
-        $ ansible --version 
-
-- Goto workspace folder excute below command For pinging or not 
-
-        $ ansible all -i hosts -m ping 
-
-- To check date of the remote hosts 
-
-        $ ansible all -i hosts -a 'date' 
-
-# output of ping 
-
-        ubuntu@ip-10-0-1-10:~/workspace$ ansible all -i hosts -m ping
-        10.0.1.12 | SUCCESS => {
-            "ansible_facts": {
-                "discovered_interpreter_python": "/usr/bin/python3"
-            },
-            "changed": false,
-            "ping": "pong"
-        }
-        10.0.1.11 | SUCCESS => {
-            "ansible_facts": {
-                "discovered_interpreter_python": "/usr/bin/python3"
-            },
-            "changed": false,
-            "ping": "pong"
-        }
-        ubuntu@ip-10-0-1-10:~/workspace$
-
-
-# If playbooks01 repo is not available in /home/ubuntu clone using below command 
-# Clone below repo for yml files in **workspace** folder 
-
-        git clone https://github.com/thej950/playbooks01.git 
-
-# To run playbooks from controller Goto playbooks01 directory 
-and excute below command 
-
-        ansible-playbook <playbook.yml> -i <inventory> --check
-
-        $ ansible-playbook playbook1.yml -i ../hosts --check
-
+### **1. Pre-requisites**
+
+#### **1.1 Install Required Tools**
+Make sure the following tools are installed on your local machine:
+- [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
+- [Terraform](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli)
+- [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
+
+#### **1.2 Clone the Repository**
+Clone the repository containing the Terraform and Ansible setup:
+```bash
+git clone https://github.com/thej950/ansible_tf_work.git
+cd ansible_tf_work
+```
+
+#### **1.3 Configure AWS CLI**
+- Create an AWS IAM user with `AdministratorAccess`.
+- Generate and download the **Access Key ID** and **Secret Access Key**.
+- Configure the AWS CLI:
+  ```bash
+  aws configure
+  ```
+  - Provide the following details:
+    - **Access Key ID**: `XXXXXXXXX`
+    - **Secret Access Key**: `XXXXXXXXXX`
+    - **Region**: `us-east-1` (or your preferred region)
+    - **Output Format**: `text`
+---
+
+### **2. Execute Terraform Commands**
+
+Navigate to the Terraform working directory (if not already there):
+```bash
+cd ansible_tf_work
+```
+
+Run the following commands:
+
+#### **2.1 Initialize Terraform**
+```bash
+terraform init
+```
+This sets up the necessary backend plugins and initializes the working directory.
+
+#### **2.2 Plan Infrastructure**
+```bash
+terraform plan
+```
+This command generates an execution plan, showing the resources Terraform will create.
+
+#### **2.3 Apply the Terraform Configuration**
+```bash
+terraform apply -auto-approve
+```
+This creates the infrastructure as defined in the Terraform configuration files.
+
+#### **2.4 Destroy the Infrastructure (Optional)**
+If you want to clean up the resources, run:
+```bash
+terraform destroy -auto-approve
+```
+
+---
+
+### **3. Next Steps**
+
+#### **3.1 Verify Infrastructure**
+- Check that the resources (VPC, Subnet, EC2 instances, etc.) were created successfully in the AWS Management Console.
+- Note down the public IP of the **controller instance** for SSH access.
+
+#### **3.2 Connect to the Controller Instance**
+Use SSH to connect to the **controller** instance:
+```bash
+ssh -i <path-to-private-key> ubuntu@<controller-public-ip>
+```
+
+#### **3.3 Configure and Test Ansible**
+- Verify Ansible installation on the controller:
+  ```bash
+  ansible --version
+  ```
+- Test communication with the managed nodes:
+  ```bash
+  ansible all -i hosts -m ping
+  ```
