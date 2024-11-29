@@ -54,7 +54,7 @@ resource "aws_security_group" "sg-1" {
 
 resource "aws_key_pair" "awskey1" {
   key_name   = "terraform"
-  public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCoiZLoj3+KnBzp1Ot+MTB7mgT2KX/u5ssM8TeBDxx3UxcTdRErS0AuRuNPgvdiVYfZ3R34KDIxbERT27NxEALfNYbLhU+FQ3IpduPe8imCKLHYgYzxwOQWuMEkfV9wevRxW7dcto/12MTmGKg8anE93l4uC/wet6htkLPeRymf/Dk0kCyGz1CVtdLqei78lUdAPgluPH28iK9wtLKVw9cm344DmDPi0wPVMFGzPs7Lq3j1XpqpG7ZO7ECiluqbw6wRPY9KLA5Eux7ng4qSLhi02PMDwuhQbTC97Onu89CbGhmQreZLx7hXcbkCax3+vduae7lDV/QsqEeOn6ndKNPH8BhSUpRF+SLpWGVpps6S+nlUvw9uoBML3sWOM25lDGBaYsttkIiXL2W0GLtwjRZWyolBOVjkmOvgjekBqCrYxPlQPiJh0R9Kns+3MAAk0lD3faNLuWwE3IRaFePghQvFY3nKOAW+LsbNCq5xtesbNzXwSLlo4cdU4FjKob3uots= DELL@Navathej"
+  public_key = file("workspace/sshkeys/terraform.pub") # Use your public key path
 }
 
 resource "aws_instance" "controller" {
@@ -110,3 +110,4 @@ resource "aws_instance" "worker-2" {
    Name = "worker-machine-2"
  }
 }
+
