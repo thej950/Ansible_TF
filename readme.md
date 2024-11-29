@@ -208,6 +208,6 @@
 and excute below command 
 
         ansible-playbook ansible-integrate-docker.yml -i ../hosts --check
--
+        
         $ ansible-playbook playbook1.yml -i ../hosts --check
 
