@@ -223,9 +223,6 @@ workspace/
 ├── sshkeys/
 │   ├── terraform (private key)
 │   ├── terraform.pub (public key)
-├── playbooks/
-│   ├── ansible-integrate-docker.yml
-│   ├── other-playbooks.yml
 └── inventory
 ```
 
