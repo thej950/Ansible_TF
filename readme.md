@@ -84,3 +84,34 @@ ssh -i <path-to-private-key> ubuntu@<controller-public-ip>
   ```bash
   ansible all -i hosts -m ping
   ```
+
+- Execute a playbook:
+  ```bash
+  ansible-playbook <playbook_name> -i <path_of_inventory_file>
+  ```
+  ```bash
+  ansible-playbook playbook.yml -i hosts --check        
+  ```
+
+### inventory file 
+```bash
+[controller]
+10.0.1.10 ansible_user=ubuntu ansible_ssh_private_key_file=./sshkeys/terraform
+
+[workers]
+10.0.1.11 ansible_user=ubuntu ansible_ssh_private_key_file=./sshkeys/terraform
+10.0.1.12 ansible_user=ubuntu ansible_ssh_private_key_file=./sshkeys/terraform
+```
+
+### Ansible Setup
+1. Directory Structure
+```bash
+plaintext
+Copy code
+workspace/
+├── controller.sh
+├── sshkeys/
+│   ├── terraform (private key)
+│   ├── terraform.pub (public key)
+└── inventory
+```
