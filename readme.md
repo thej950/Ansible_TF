@@ -1,4 +1,4 @@
-# this code will setup ansible cluster with one controller and two worker machinens 
+### This project will setup ansible cluster with one controller and two worker machinens using terraform 
 ### **1. Pre-requisites**
 
 #### **1.1 Install Required Tools**
