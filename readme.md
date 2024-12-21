@@ -115,3 +115,58 @@ workspace/
 │   ├── terraform.pub (public key)
 └── inventory
 ```
+
+
+
+===
+The configuration you provided appears to resemble **inventory file syntax**, not a valid `ansible.cfg` file format. In **`ansible.cfg`**, you cannot define hosts and private keys directly. Instead, the `ansible.cfg` file is used to configure Ansible behavior globally or for a specific project.
+
+---
+
+### **Correct Way to Define Hosts and Keys:**
+
+1. **In Inventory File (Best Practice):**
+   You should specify the hosts and SSH private key in an inventory file (e.g., `inventory.ini` or `inventory.yml`).
+
+   **Example (INI Format):**
+   ```ini
+   [webservers]
+   10.0.1.11 ansible_ssh_private_key_file=/home/ubuntu/workspace/sshkeys/terraform
+   10.0.1.12 ansible_ssh_private_key_file=/home/ubuntu/workspace/sshkeys/terraform
+   ```
+
+   **Example (YAML Format):**
+   ```yaml
+   all:
+     hosts:
+       10.0.1.11:
+         ansible_ssh_private_key_file: /home/ubuntu/workspace/sshkeys/terraform
+       10.0.1.12:
+         ansible_ssh_private_key_file: /home/ubuntu/workspace/sshkeys/terraform
+   ```
+
+2. **In `ansible.cfg`:**
+   The `ansible.cfg` file can reference the inventory file and define general connection defaults.
+
+   **Example:**
+   ```ini
+   [defaults]
+   inventory = inventory.ini
+   private_key_file = /home/ubuntu/workspace/sshkeys/terraform
+   host_key_checking = False
+   ```
+
+   Alternatively, you can omit `private_key_file` from `ansible.cfg` and manage it in the inventory file as shown above.
+
+---
+
+### **Mistakes in Your Syntax:**
+- The lines `10.0.1.11 ansible_ssh_private_key_file=...` are **not valid in `ansible.cfg`**. They belong in an inventory file.
+- Ansible configuration files (`ansible.cfg`) do not list individual hosts.
+
+---
+
+### **Key Separation of Roles:**
+- Use the **inventory file** for host-specific settings like private keys, hostnames, and ports.
+- Use **`ansible.cfg`** for global configurations and defaults. 
+
