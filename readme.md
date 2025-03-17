@@ -10,7 +10,7 @@ Make sure the following tools are installed on your local machine:
 #### **1.2 Clone the Repository**
 Clone the repository containing the Terraform and Ansible setup:
 ```bash
-git clone https://github.com/thej950/ansible_tf_work.git
+git clone https://github.com/thej950/Ansible_TF.git
 cd ansible_tf_work
 ```
 
