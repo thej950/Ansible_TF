@@ -17,7 +17,7 @@ locals {
 
   instance_common_tags = {
     Environment = "Dev"
-    Project     = "EKS-Cluster"
+    Project     = "ANS-Cluster"
   }
 }
 
